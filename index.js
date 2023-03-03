@@ -1,16 +1,64 @@
-const inquirer = require("inquirer");
-const fs = require("fs");
-const createTeamDirectory = require("./src/document.js")
-const path = require('path')
+const express = require('express');
+const mysql = require('mysql2');
+//requiring express/mysql package
+const PORT = process.env.PORT || 3001;
+const app = express();
 
-const Engineer = require("./lib/engineer.js")
-const Intern = require("./lib/intern.js")
-const Manager = require("./lib/manager.js");
-const teamMembers = [];
+//middleware
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
+//connect to database
+const db = mysql.createConnection(
+  {
+    host: 'localhost',
+    user: 'root',
+    password: 'Tonivoh11!',
+    database: 'books_db'
+  },
+  console.log(`Connected to the books_db database.`)
+);
 
+const employees = [];
 //CLI array of questions
-const questionsManager = () => {
+
+const promptMenu = () => {
+    return inquirer.prompt([
+        {
+            type: 'list',
+            name: 'employeeManager',
+            message: 'What would you like to do?',
+            choices: ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee role'] 
+        }])
+        .then(res => {
+            switch (res.employeeManager) {
+                case "View all departments":
+                    viewDepartments();
+                    break;
+                case "View all roles":
+                    questionsIntern();
+                    break;
+                case "View all employees":
+                    questionsEngineer();
+                    break;
+                case "Add a department":
+                    questionsIntern();
+                    break;
+                case "Add a role":
+                    questionsEngineer();
+                    break;
+                case "Add an employee":
+                    questionsIntern();
+                    break;
+                case "Update an employee role":
+                    questionsEngineer();
+                    break;
+                default:
+                    completeTeam();
+            }
+        });
+};
+const viewDepartments = () => {
     return inquirer.prompt([
         {
             type: 'input',
@@ -125,3 +173,9 @@ const completeTeam = () => {
     fs.writeFileSync('index.html', createTeamDirectory(teamMembers), "utf-8");
 }
 questionsManager();
+
+//listening on the port
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+  
